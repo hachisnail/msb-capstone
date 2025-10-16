@@ -1,0 +1,37 @@
+{
+  "name": "msb-auth-express",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "dev": "nodemon src/server.js",
+    "start": "node src/server.js",
+    "migrate": "sequelize-cli db:migrate --config sequelize.cjs",
+    "seed": "sequelize-cli db:seed:all --config sequelize.cjs",
+    "migrate:undo": "sequelize-cli db:migrate:undo --config sequelize.cjs"
+  },
+  "dependencies": {
+    "@auth/core": "^0.34.0",
+    "@auth/express": "^0.5.0",
+    "@auth/sequelize-adapter": "^1.0.0",
+    "accesscontrol": "^2.2.1",
+    "axios": "^1.12.2",
+    "bcryptjs": "^2.4.3",
+    "connect-session-sequelize": "^8.0.2",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.19.2",
+    "express-session": "^1.18.2",
+    "helmet": "^7.1.0",
+    "mariadb": "^3.3.2",
+    "morgan": "^1.10.0",
+    "multer": "^2.0.2",
+    "nodemailer": "^6.10.1",
+    "sequelize": "^6.37.7"
+  },
+  "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
+    "nodemon": "^3.1.10",
+    "sequelize-cli": "^6.6.3"
+  }
+}
