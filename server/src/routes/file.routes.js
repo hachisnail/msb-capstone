@@ -13,41 +13,35 @@ router.post(
   "/articles",
   requireAuth,
   requirePerm("articles.create"),
-  createFileUploader({ category: "articles", privacy: "public" }),
-  fileController.uploadArticleFile, // Use controller
+  ...createFileUploader({ category: "articles", privacy: "public" }),
+  fileController.uploadArticleFile,
 );
 
 router.post(
   "/acquisitions",
   requireAuth,
   requirePerm("acquisitions.create"),
-  createFileUploader({ category: "acquisitions", privacy: "private" }),
-  fileController.uploadAcquisitionFile, // Use controller
+  ...createFileUploader({ category: "acquisitions", privacy: "private" }),
+  fileController.uploadAcquisitionFile,
 );
 
-//  NEW INVENTORY ENDPOINT
 router.post(
   "/inventory",
   requireAuth,
   requirePerm("inventory.create"),
-  createFileUploader({ category: "inventory", privacy: "private" }),
-  fileController.uploadInventoryFile, // Use controller
+  ...createFileUploader({ category: "inventory", privacy: "private" }),
+  fileController.uploadInventoryFile,
 );
 
 // == PUBLIC, TOKEN-BASED UPLOAD ROUTE ==
-
 router.post(
   "/public/submissions",
   verifyAccessToken("write"),
-  createFileUploader({ category: "submissions", privacy: "private" }),
-  fileController.uploadPublicSubmission, // Use controller
+  ...createFileUploader({ category: "submissions", privacy: "private" }),
+  fileController.uploadPublicSubmission,
 );
 
 // == UNIVERSAL FILE ACCESS ROUTE ==
-
-router.get(
-  "/:filename",
-  fileController.getFileByName, // Use controller
-);
+router.get("/:filename", fileController.getFileByName);
 
 export default router;

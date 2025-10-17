@@ -11,6 +11,9 @@ import permissionFactory from "./permission.model.js";
 import rolePermissionFactory from "./rolePermission.model.js";
 import userRoleFactory from "./userRole.model.js";
 
+import fileFactory from "./file.model.js";
+import accessTokenFactory from "./accessToken.model.js";
+
 const models = {};
 models.User = userFactory(sequelize, DataTypes);
 models.Account = accountFactory(sequelize, DataTypes);
@@ -22,6 +25,10 @@ models.Permission = permissionFactory(sequelize, DataTypes);
 models.RolePermission = rolePermissionFactory(sequelize, DataTypes);
 models.UserRole = userRoleFactory(sequelize, DataTypes);
 
+models.User = userFactory(sequelize, DataTypes);
+
+models.File = fileFactory(sequelize, DataTypes);
+models.AccessToken = accessTokenFactory(sequelize, DataTypes);
 // ===== Associations =====
 
 // RolePermission: many-to-one
@@ -58,6 +65,9 @@ models.Permission.belongsToMany(models.Role, {
   foreignKey: "permissionId",
   otherKey: "roleId",
 });
+
+models.User.hasMany(models.File, { foreignKey: 'uploader_id' });
+models.File.belongsTo(models.User, { foreignKey: 'uploader_id' });
 
 // Call associate hooks if any
 Object.values(models).forEach((m) => {

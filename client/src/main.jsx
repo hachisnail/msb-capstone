@@ -5,6 +5,7 @@ import { ConfigProvider, App as AntdApp } from "antd";
 import { AuthProvider } from "./context/AuthProvider";
 import { theme } from "./lib/constants.js";
 
+
 import "@ant-design/v5-patch-for-react-19";
 import "./index.css";
 

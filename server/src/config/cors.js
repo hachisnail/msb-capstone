@@ -1,4 +1,3 @@
-// ./config/cors.js
 import cors from "cors";
 import dotenv from "dotenv";
 dotenv.config();
@@ -18,7 +17,14 @@ export default function corsWithCreds() {
       console.warn("❌ CORS blocked:", origin);
       return callback(new Error(`Not allowed by CORS: ${origin}`));
     },
-    credentials: true, // allow cookies
+    credentials: true,
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"], // ✅ add this
+    allowedHeaders: [
+      "Content-Type",
+      "Authorization",
+      "X-Requested-With",
+      "Accept",
+    ],
     optionsSuccessStatus: 200,
   });
 }

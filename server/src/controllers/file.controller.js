@@ -1,7 +1,14 @@
 import path from "path";
+import fs from "fs";
+import { fileURLToPath } from "url";
 import { models } from "../models/index.js";
 
-// Controller for successful, authenticated file uploads
+// ---  Resolve absolute upload root path
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+const UPLOAD_ROOT = path.join(__dirname, "../../../uploads");
+
+// ---  Helper for upload success responses
 function handleUploadSuccess(req, res, message) {
   if (!req.file || !req.file.dbData) {
     return res
@@ -11,19 +18,18 @@ function handleUploadSuccess(req, res, message) {
   return res.status(201).json({ message, file: req.file.dbData });
 }
 
-// Controller for successful public submission uploads
+// ---  Public submission upload handler
 async function handlePublicUploadSuccess(req, res, next) {
   if (req.accessToken) {
-    // Increment the token's usage count after the file is successfully saved
     await req.accessToken.increment("use_count").catch(next);
   }
   res.status(201).json({
     message: "Your file has been submitted!",
-    file: { filename: req.file.dbData.filename }, // Only return the filename for public submissions
+    file: { filename: req.file.dbData.filename },
   });
 }
 
-// Universal controller for accessing any file by its filename
+// ---  Main file access controller with privacy enforcement
 async function getFileByName(req, res, next) {
   try {
     const { filename } = req.params;
@@ -33,49 +39,58 @@ async function getFileByName(req, res, next) {
       return res.status(404).json({ message: "File not found." });
     }
 
-    const absolutePath = path.resolve(file.file_path);
+    const absolutePath = path.join(UPLOAD_ROOT, file.category, file.filename);
 
-    // PRIORITY 1: Check for a valid 'read' token in query params
+    if (!fs.existsSync(absolutePath)) {
+      return res.status(404).json({ message: "File missing on disk." });
+    }
+
+    // ---  Privacy Layers ---
+
+    // 1️ Token-based (temporary or public links)
     if (req.query.token) {
       const token = await models.AccessToken.findOne({
         where: { token: req.query.token },
       });
+
       if (token) {
-        const isValid =
+        const valid =
           token.scope === "read" &&
           (!token.expires_at || new Date() < new Date(token.expires_at)) &&
           (token.max_uses === null || token.use_count < token.max_uses);
 
-        if (isValid) {
+        if (valid) {
           await token.increment("use_count");
           return res.sendFile(absolutePath);
         }
       }
+      return res.status(403).json({ message: "Invalid or expired token." });
     }
 
-    // PRIORITY 2: Check for public files
+    // 2️ Public files (open access)
     if (file.privacy === "public") {
       return res.sendFile(absolutePath);
     }
 
-    // PRIORITY 3: Fallback to user session for private files
-    const session = req.session || (req.auth && req.auth.session);
-    if (!session?.user) {
-      return res.status(401).json({ error: "Unauthorized" });
+    // 3️ Private files (requires logged-in user + permission)
+    const user = req.session?.user;
+    if (!user) {
+      return res.status(401).json({ message: "Unauthorized" });
     }
 
-    const userPerms = new Set(session.user.perms || []);
-    const requiredPermission = `${file.category}.read`;
-    if (userPerms.has(requiredPermission)) {
-      return res.sendFile(absolutePath);
+    const hasPerm = user.perms?.includes(`${file.category}.read`);
+    if (!hasPerm) {
+      return res.status(403).json({ message: "Forbidden: Access denied." });
     }
 
-    return res.status(403).json({ message: "Forbidden: Access denied." });
+    return res.sendFile(absolutePath);
   } catch (error) {
+    console.error("File access error:", error);
     next(error);
   }
 }
 
+// ---  Export controller object
 export const fileController = {
   uploadArticleFile: (req, res) =>
     handleUploadSuccess(req, res, "Article file uploaded!"),

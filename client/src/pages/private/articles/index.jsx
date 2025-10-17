@@ -6,6 +6,8 @@ import dayjs from "dayjs";
 import Breadcrumbs from "../../../components/ui/Breadcrumbs";
 import SidebarPanel from "../../../components/ui/SidebarPanel";
 
+import Uploader from "../../../components/dependencies/Uploader";
+
 export default function Articles() {
   const [activeTab, setActiveTab] = useState("Pending");
   const [searchText, setSearchText] = useState("");
@@ -100,6 +102,15 @@ export default function Articles() {
     return matchesSearch && matchesDate;
   });
 
+
+    const handleSuccess = (data) => {
+    console.log(" Upload success:", data);
+  };
+
+  const handleError = (err) => {
+    console.error(" Upload error:", err);
+  };
+
   return (
     <div className="flex flex-col gap-y-2 h-full">
       <Breadcrumbs />
@@ -156,6 +167,17 @@ export default function Articles() {
             bordered={false}
             showHeader
           />
+
+           <Uploader
+        endpoint="/api/files/articles"     // your Express or API endpoint
+        onUploadSuccess={handleSuccess}
+        onUploadError={handleError}
+        acceptedFileTypes="image/*"      // restricts to images
+      >
+        <button className="px-4 py-2 bg-blue-600 text-white rounded hover:bg-blue-700">
+          Click to Upload
+        </button>
+      </Uploader>
         </div>
       </div>
     </div>
